@@ -1,21 +1,29 @@
 <!DOCTYPE html>
 <head>
-
+    <script src="script.js"></script>
+    <script>
+        function init() {
+            console.log('init');
+            // bind getWeather function to search button
+            document.getElementById('search_button').addEventListener('click', async function(evt) {
+                document.getElementById('weather_data').innerHTML = "<p>Loading weather data...</p>";
+                weatherData = await getWeather(document.getElementById('search').value);
+                document.getElementById('weather_data').innerHTML = JSON.stringify(weatherData);
+            });
+        }
+    </script>
 </head>
-<body>
+<body onload="init()">
     <header>
         <h1>Sasha's Epic Weather Site</h1>
         <subtitle>Real time weather information all around the world</subtitle>
     </header>
-</body>
 
-<input type="text" id="search" placeholder="Enter a city name">
-<button id="search-button">Search</button>
+    <input type="text" id="search" placeholder="Enter a city name">
+    <button id="search_button">Search</button>
 
-<p>Enter a city name to get the weather information</p>
+    <p>Enter a city name to get the weather information</p>
 
-<p>Loading weather data...</p>
-
-<script src="script.js"></script>
+    <div id="weather_data"/>
 </body>
 </html>

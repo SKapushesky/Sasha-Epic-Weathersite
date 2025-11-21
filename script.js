@@ -23,6 +23,3 @@ async function getWeather(city) {
     console.error('Error fetching weather:', error);
   }
 }
-
-// Example usage - fetch weather for a city
-getWeather('New York');
