@@ -1,9 +1,13 @@
 import { useState } from 'react'
 import WeatherCard from './components/WeatherCard'
 import SearchBar from './components/SearchBar'
+import HourlyForecast from './components/HourlyForecast'
+import DailyForecast from './components/DailyForecast'
 
 function App() {
   const [weatherData, setWeatherData] = useState(null)
+  const [hourlyData, setHourlyData] = useState(null)
+  const [dailyData, setDailyData] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
@@ -13,25 +17,33 @@ function App() {
     setLoading(true)
     setError(null)
     setWeatherData(null)
+    setHourlyData(null)
+    setDailyData(null)
 
     try {
       const API_KEY = '3999745808bf4e4d92e054d8dde62752'
-      const API_BASE_URL = 'https://api.weatherbit.io/v2.0/current'
-      
-      const params = new URLSearchParams({
-        city: city,
-        key: API_KEY
-      })
 
-      const response = await fetch(`${API_BASE_URL}?${params}`)
+      const [currentResponse, hourlyResponse, dailyResponse] = await Promise.all([
+        fetch(`https://api.weatherbit.io/v2.0/current?city=${encodeURIComponent(city)}&key=${API_KEY}`),
+        fetch(`https://api.weatherbit.io/v2.0/forecast/hourly?city=${encodeURIComponent(city)}&hours=24&key=${API_KEY}`),
+        fetch(`https://api.weatherbit.io/v2.0/forecast/daily?city=${encodeURIComponent(city)}&days=7&key=${API_KEY}`)
+      ])
       
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+      if (!currentResponse.ok) {
+        throw new Error(`HTTP error! status: ${currentResponse.status}`)
       }
       
-      const data = await response.json()
-      console.log('Weather Data:', data)
-      setWeatherData(data)
+      const currentData = await currentResponse.json()
+      const hourlyData = hourlyResponse.ok ? await hourlyResponse.json() : null
+      const dailyData = dailyResponse.ok ? await dailyResponse.json() : null
+      
+      console.log('Weather Data:', currentData)
+      console.log('Hourly Data:', hourlyData)
+      console.log('Daily Data:', dailyData)
+      
+      setWeatherData(currentData)
+      setHourlyData(hourlyData)
+      setDailyData(dailyData)
     } catch (err) {
       console.error('Error fetching weather:', err)
       setError(err.message || 'Failed to fetch weather data. Please try again.')
@@ -52,7 +64,7 @@ function App() {
           </p>
         </header>
 
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <SearchBar onSearch={handleSearch} loading={loading} />
           
           {loading && (
@@ -70,7 +82,11 @@ function App() {
           )}
 
           {weatherData && !loading && (
-            <WeatherCard data={weatherData} />
+            <>
+              <WeatherCard data={weatherData} />
+              {hourlyData && <HourlyForecast data={hourlyData} />}
+              {dailyData && <DailyForecast data={dailyData} />}
+            </>
           )}
 
           {!weatherData && !loading && !error && (
